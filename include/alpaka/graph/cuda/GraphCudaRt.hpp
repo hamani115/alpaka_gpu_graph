@@ -42,7 +42,7 @@ namespace alpaka
         template <typename TDim, typename TIdx>
         struct CreateGraph<AccGpuCudaRt<TDim, TIdx>>
         {
-            static auto createGraph() -> detail::GraphCudaRt
+            static auto createGraph() -> alpaka::detail::GraphCudaRt
             {
                 cudaGraph_t nativeGraph{};
 
@@ -53,15 +53,14 @@ namespace alpaka
                     throw std::runtime_error{cudaGetErrorString(result)};
                 }
 
-                return detail::GraphCudaRt{nativeGraph};
+                return alpaka::detail::GraphCudaRt{nativeGraph};
             }
         };
 
         template <>
-        struct DestroyGraph<detail::GraphCudaRt>
+        struct DestroyGraph<alpaka::detail::GraphCudaRt>
         {
-            static auto destroyGraph(
-                detail::GraphCudaRt const &graph) -> void
+            static auto destroyGraph(alpaka::detail::GraphCudaRt const &graph) -> void
             {
                 auto const result = cudaGraphDestroy(graph.getNativeHandle());
 
