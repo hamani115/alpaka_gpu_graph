@@ -3,7 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <iostream>
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 
 __global__ void addKernel(double *arrayA, const int *arrayB, size_t size)
 {
