@@ -1,6 +1,6 @@
 ## Build and run
 
-### 1. Clone repository
+### 1. Clone repo
 
 ```bash
 git clone https://github.com/hamani115/alpaka_gpu_graph.git
@@ -9,7 +9,7 @@ cd alpaka_gpu_graph
 
 ### 2. Clone alpaka
 
-Clone alpaka inside the repository:
+Clone alpaka inside repo:
 
 ```bash
 git clone https://github.com/alpaka-group/alpaka.git
@@ -25,7 +25,7 @@ alpaka_gpu_graph/
 └── build_cuda.sh
 ```
 
-### 3. Set the alpaka path
+### 3. Set alpaka path
 
 Open `build_cuda.sh` and set:
 
@@ -42,7 +42,7 @@ ALPAKA_BASE=./alpaka
 
 ### 4. Build a CUDA test
 
-Run the CUDA build script from repository root:
+Run the CUDA build script from repo root:
 
 ```bash
 bash build_cuda.sh <cuda-file> <output-name>
