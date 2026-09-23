@@ -57,11 +57,7 @@ int main()
     unsigned int const threadsPerBlock = 256u;
 
     unsigned int const blocksPerGrid = static_cast<unsigned int>(
-        (n + tassignKernelhreadsPerBlock - 1u) / threadsPerBlock);
-
-    float *d_input{};
-    float *d_output{};
-    std::size_t n{};
+        (n + threadsPerBlock - 1u) / threadsPerBlock);
 
     // Node 1: assignKernel
 
@@ -77,9 +73,7 @@ int main()
         assignArgs,
     };
 
-    auto const assignNode = gpu_graph::addKernelNode<Backend>(
-        graph,
-        assignConfig);
+    auto const assignNode = gpu_graph::addKernelNode<Backend>(graph, assignConfig);
 
     // Node 2: addKernel -> Depends on assignKernel
 
@@ -100,7 +94,7 @@ int main()
         assignNode,
     };
 
-    auto const assignNode = gpu_graph::addKernelNode<Backend>(
+    auto const addNode = gpu_graph::addKernelNode<Backend>(
         graph,
         addDependencies,
         addConfig);
