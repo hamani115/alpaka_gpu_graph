@@ -45,8 +45,8 @@ int main()
     double *d_arrayA{};
     int *d_arrayB{};
 
-    cudaMallocManaged(&d_arrayA, n * sizeof(double));
-    cudaMallocManaged(&d_arrayB, n * sizeof(int));
+    hipMallocManaged(&d_arrayA, n * sizeof(double));
+    hipMallocManaged(&d_arrayB, n * sizeof(int));
 
     for (size_t i = 0; i < n; ++i)
     {
@@ -167,8 +167,8 @@ int main()
     gpu_graph::destroyGraph<Backend>(graph);
     gpu_graph::destroyStream<Backend>(stream);
 
-    cudaFree(d_arrayA);
-    cudaFree(d_arrayB);
+    hipFree(d_arrayA);
+    hipFree(d_arrayB);
 
     return 0;
 }
