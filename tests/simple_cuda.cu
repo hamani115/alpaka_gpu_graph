@@ -1,28 +1,34 @@
 #include <gpu_graph/Graph.hpp>
 
 #include <array>
+#include <cstddef>
+#include <iostream>
+#include <cuda_runtime.h>
 
-__global__ void addKernel(double *arrayA, const int *arrayB, size_t size)
+__global__ void addKernel(double* arrayA, const int* arrayB, std::size_t size)
 {
-    const size_t x = threadIdx.x + blockDim.x * blockIdx.x;
+    const std::size_t x = threadIdx.x + blockDim.x * blockIdx.x;
+
     if (x < size)
     {
         arrayA[x] += arrayB[x];
     }
 }
 
-__global__ void multiplyKernel(double *arrayA, size_t size)
+__global__ void multiplyKernel(double* arrayA, std::size_t size)
 {
-    const size_t x = threadIdx.x + blockDim.x * blockIdx.x;
+    const std::size_t x = threadIdx.x + blockDim.x * blockIdx.x;
+
     if (x < size)
     {
         arrayA[x] *= 2.0;
     }
 }
 
-__global__ void assignKernel(int *arrayB, size_t size)
+__global__ void assignKernel(int* arrayB, std::size_t size)
 {
-    const size_t x = threadIdx.x + blockDim.x * blockIdx.x;
+    const std::size_t x = threadIdx.x + blockDim.x * blockIdx.x;
+
     if (x < size)
     {
         arrayB[x] = 3;
@@ -32,57 +38,111 @@ __global__ void assignKernel(int *arrayB, size_t size)
 int main()
 {
     using Backend = gpu_graph::CudaBackend;
-    // Change only to HipBackend for the HIP build.
 
     auto stream = gpu_graph::createStream<Backend>();
     auto graph = gpu_graph::createGraph<Backend>();
 
     unsigned int const numberOfIterations = 10;
-    float *d_input{};
-    float *d_output{};
+
     std::size_t n{4};
+
+    // Managed memory so that both CPU and GPU can access it.
+    double* d_arrayA{};
+    int* d_arrayB{};
+
+    cudaMallocManaged(&d_arrayA, n * sizeof(double));
+    cudaMallocManaged(&d_arrayB, n * sizeof(int));
+
+    // Initialize the arrays on the CPU.
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        d_arrayA[i] = static_cast<double>(i);
+        d_arrayB[i] = 0;
+    }
 
     unsigned int const threadsPerBlock = 256u;
 
-    unsigned int const blocksPerGrid = static_cast<unsigned int>(
-        (n + threadsPerBlock - 1u) / threadsPerBlock);
+    unsigned int const blocksPerGrid =
+        static_cast<unsigned int>(
+            (n + threadsPerBlock - 1u) / threadsPerBlock);
 
-    for (size_t i = 0; i < n; i++)
-    {
-        d_input[i] = i;
-    }
+    // ============================================================
+    // Node 1: assignKernel
+    //
+    // arrayB[x] = 3
+    // ============================================================
 
-    // Add node
-    void *addArguments[] = {
-        &d_input,
-        &d_output,
-        &n};
+    void* assignArguments[] = {
+        &d_arrayB,
+        &n
+    };
 
-    gpu_graph::KernelNodeConfig const addConfig{
-        reinterpret_cast<void *>(addKernel),
+    gpu_graph::KernelNodeConfig const assignConfig{
+        reinterpret_cast<void*>(assignKernel),
         {blocksPerGrid, 1u, 1u},
         {threadsPerBlock, 1u, 1u},
-        addArguments};
+        assignArguments
+    };
+
+    auto const assignNode =
+        gpu_graph::addKernelNode<Backend>(
+            graph,
+            assignConfig);
+
+    // ============================================================
+    // Node 2: addKernel
+    //
+    // arrayA[x] += arrayB[x]
+    //
+    // Depends on assignKernel.
+    // ============================================================
+
+    void* addArguments[] = {
+        &d_arrayA,
+        &d_arrayB,
+        &n
+    };
+
+    gpu_graph::KernelNodeConfig const addConfig{
+        reinterpret_cast<void*>(addKernel),
+        {blocksPerGrid, 1u, 1u},
+        {threadsPerBlock, 1u, 1u},
+        addArguments
+    };
+
+    std::array<gpu_graph::Node<Backend>, 1u> const addDependencies{
+        assignNode
+    };
 
     auto const addNode =
         gpu_graph::addKernelNode<Backend>(
             graph,
+            addDependencies,
             addConfig);
 
-    // Multiply node
+    // ============================================================
+    // Node 3: multiplyKernel
+    //
+    // arrayA[x] *= 2
+    //
+    // Depends on addKernel.
+    // ============================================================
 
-    void *multiplyArguments[] = {
-        &d_output,
-        &n};
+    void* multiplyArguments[] = {
+        &d_arrayA,
+        &n
+    };
 
     gpu_graph::KernelNodeConfig const multiplyConfig{
-        reinterpret_cast<void *>(multiplyKernel),
+        reinterpret_cast<void*>(multiplyKernel),
         {blocksPerGrid, 1u, 1u},
         {threadsPerBlock, 1u, 1u},
-        multiplyArguments};
+        multiplyArguments
+    };
 
     std::array<gpu_graph::Node<Backend>, 1u> const multiplyDependencies{
-        addNode};
+        addNode
+    };
 
     auto const multiplyNode =
         gpu_graph::addKernelNode<Backend>(
@@ -90,31 +150,21 @@ int main()
             multiplyDependencies,
             multiplyConfig);
 
-    // Assignment node
+    // Avoid unused-variable warning.
+    (void)multiplyNode;
 
-    void *assignArguments[] = {
-        &d_output,
-        &n};
-
-    gpu_graph::KernelNodeConfig const assignConfig{
-        reinterpret_cast<void *>(assignKernel),
-        {blocksPerGrid, 1u, 1u},
-        {threadsPerBlock, 1u, 1u},
-        assignArguments};
-
-    std::array<gpu_graph::Node<Backend>, 1u> const assignDependencies{
-        multiplyNode};
-
-    auto const assignNode =
-        gpu_graph::addKernelNode<Backend>(
-            graph,
-            assignDependencies,
-            assignConfig);
+    // ============================================================
+    // Instantiate graph
+    // ============================================================
 
     auto executable =
         gpu_graph::instantiate<Backend>(graph);
 
-    for (std::size_t iteration = 0u;
+    // ============================================================
+    // Launch graph multiple times
+    // ============================================================
+
+    for (std::size_t iteration = 0;
          iteration < numberOfIterations;
          ++iteration)
     {
@@ -125,7 +175,40 @@ int main()
 
     gpu_graph::synchronize<Backend>(stream);
 
+    // ============================================================
+    // Print results
+    // ============================================================
+
+    std::cout << "arrayA:" << std::endl;
+
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        std::cout
+            << "arrayA[" << i << "] = "
+            << d_arrayA[i]
+            << std::endl;
+    }
+
+    std::cout << "\narrayB:" << std::endl;
+
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        std::cout
+            << "arrayB[" << i << "] = "
+            << d_arrayB[i]
+            << std::endl;
+    }
+
+    // ============================================================
+    // Cleanup
+    // ============================================================
+
     gpu_graph::destroyExecutable<Backend>(executable);
     gpu_graph::destroyGraph<Backend>(graph);
     gpu_graph::destroyStream<Backend>(stream);
+
+    cudaFree(d_arrayA);
+    cudaFree(d_arrayB);
+
+    return 0;
 }
