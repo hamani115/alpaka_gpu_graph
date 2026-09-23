@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo
 
 CUDA_BASE=/usr/local/cuda
-# ALPAKA_BASE=/data/user/aalmarzo/alpaka_practice/alpaka
-ALPAKA_BASE=/home/aalmarzouqi/Documents/cern_cms_collabration/2025_2026/unified_gpu_graphs/alpaka
+ALPAKA_BASE=./alpaka
 
 NVCC="${CUDA_BASE}/bin/nvcc"
 CXX=g++
