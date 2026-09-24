@@ -17,7 +17,7 @@ OUTPUT="${2:-create_destory_graph_hip.out}"
     -I/usr/include/boost1.78 \
     -I"${ALPAKA_BASE}/include" \
     -DALPAKA_HAS_STD_ATOMIC_REF \
-    -DALPAKA_ACC_GPU_HIP_BACKEND \
+    -DALPAKA_ACC_GPU_HIP_ENABLED \
     -pthread \
     "${SOURCE}" \
     -o "${OUTPUT}"
