@@ -15,5 +15,5 @@ int main()
     std::cout << "Graph created!" << '\n';
 
     alpaka::destroyGraph(graph);
-    std::cout << "Graph destoryed!" << '\n';
+    std::cout << "Graph destroyed!" << '\n';
 }

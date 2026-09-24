@@ -6,7 +6,7 @@ ALPAKA_BASE=./alpaka
 HIPCC=hipcc
 
 SOURCE="${1:-tests/create_destory_graph_hip.cpp}"
-OUTPUT="${2:-create_destory_graph_hip.out}"
+OUTPUT="${2:-create_destroy_graph_hip.out}"
 
 "${HIPCC}" \
     --gcc-toolchain=/opt/rh/gcc-toolset-13/root/usr \
