@@ -12,8 +12,8 @@ int main()
     using Acc = alpaka::AccGpuHipRt<Dim, Idx>;
 
     auto graph = alpaka::createGraph<Acc>();
-    std::out << "Graph created!" << '\n';
+    std::cout << "Graph created!" << '\n';
 
     alpaka::destroyGraph(graph);
-    std::out << "Graph destoryed!" << '\n';
+    std::cout << "Graph destoryed!" << '\n';
 }

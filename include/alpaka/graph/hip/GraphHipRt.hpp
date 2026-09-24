@@ -58,7 +58,7 @@ namespace alpaka
         };
 
         template <>
-        struct DestoryGraph<::alpaka::detail::GraphHipRt>
+        struct DestroyGraph<::alpaka::detail::GraphHipRt>
         {
             static auto destoryGraph(::alpaka::detail::GraphHipRt const& graph) -> void
             {
