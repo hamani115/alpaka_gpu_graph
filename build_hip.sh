@@ -4,13 +4,11 @@ set -euo pipefail
 
 ALPAKA_BASE=./alpaka
 HIPCC=hipcc
-CXX=g++
 
 SOURCE="${1:-tests/create_destory_graph_hip.cpp}"
 OUTPUT="${2:-create_destory_graph_hip.out}"
 
 "${HIPCC}" \
-    -ccbin "${CXX}" \
     -std=c++20 \
     -O2 \
     -g \
@@ -19,7 +17,6 @@ OUTPUT="${2:-create_destory_graph_hip.out}"
     -I"${ALPAKA_BASE}/include" \
     -DALPAKA_HAS_STD_ATOMIC_REF \
     -DALPAKA_ACC_GPU_HIP_BACKEND \
-    --expt-relaxed-constexpr \
     -pthread \
     "${SOURCE}" \
     -o "${OUTPUT}"
