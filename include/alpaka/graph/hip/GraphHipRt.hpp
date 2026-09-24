@@ -60,7 +60,7 @@ namespace alpaka
         template <>
         struct DestroyGraph<::alpaka::detail::GraphHipRt>
         {
-            static auto destoryGraph(::alpaka::detail::GraphHipRt const& graph) -> void
+            static auto destroyGraph(::alpaka::detail::GraphHipRt const& graph) -> void
             {
                 auto const result = hipGraphDestroy(graph.getNativeHandle());
 
