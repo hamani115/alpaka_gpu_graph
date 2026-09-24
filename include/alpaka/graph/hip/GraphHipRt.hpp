@@ -50,12 +50,12 @@ namespace alpaka
 
                 if(result != hipSuccess)
                 {
-                    throw std::runtime_error(hipGetErrorString(result))
+                    throw std::runtime_error{hipGetErrorString(result)};
                 }
 
-                reutrn ::alpaka::detail::GraphHipRt{nativeGraph};
+                return ::alpaka::detail::GraphHipRt{nativeGraph};
             }
-        }
+        };
 
         template <>
         struct DestoryGraph<::alpaka::detail::GraphHipRt>
@@ -66,10 +66,10 @@ namespace alpaka
 
                 if (result != hipSuccess)
                 {
-                    throw std::runtime_error(hipGetErrorString(result));
+                    throw std::runtime_error{hipGetErrorString(result)};
                 }
             }
-        }
+        };
         
     } // namespace trait
 } // namespace alpaka
