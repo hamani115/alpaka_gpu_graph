@@ -13,7 +13,7 @@ int main()
     using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
 
     auto graph = alpaka::createGraph<Acc>();
-    std::out << "Graph created!" << '\n';
+    std::cout << "Graph created!" << '\n';
 
     std::cout << "Graph type: " << typeid(graph).name() << '\n';
 
